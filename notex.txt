@@ -1,0 +1,45 @@
+
+Next time
+---------
+
+ * Widen the mosfet pads for hand-soldering.
+ * Make the uC's pads shorter.
+ * give more space for the USB sheild pin as it bends over and collides with
+   the switch pad.
+ * Board is slightly asymetrical.
+ * Make a new version with barrel jacks for the christmas tree.
+
+Component selection
+-------------------
+
+ * the NE7000 can be substituted for any N-type with a Vth around 1-2 V. and
+   can switch 5V,
+ * The AO3400 can be substituted for any N-type that can handle 600mA of
+   current, and switch 5V.  And disipate 1.25W of heat.
+ * Likewise AO3401 can be substituted for any P-type that can handle 600mA of
+   current and switch 5V.
+ * TODO resistor tollerance
+ * TODO current limiter advice.
+
+
+Assembly notes
+--------------
+
+Solder the small SMD components first, it's easier to reach them before you
+put the big ones in.
+
+Solder the switches before mounting the USB ports, the usb port shield pin
+will interfere with switch soldering.
+
+Do not confuse the mosfet types.  They're different for good reasons.
+p-type and n-type just arnt' compatible.  However, the NE7000 can be
+substituted with more AO3400 units (probably), but not the other way around.
+
+TODO: Add alterantive 2 and 1 port versions with the current limiter.
+
+Mount the uC with either pin headers or directly.  for direct soldering try
+holding it in place with pins/wires in the through-holes then solder the
+edges.
+
+
+
