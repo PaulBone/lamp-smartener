@@ -1,13 +1,11 @@
 
-Next time
----------
+Lamp Smartener
+===============
 
- * Widen the mosfet pads for hand-soldering.
- * Make the uC's pads shorter.
- * give more space for the USB sheild pin as it bends over and collides with
-   the switch pad.
- * Board is slightly asymetrical.
- * Make a new version with barrel jacks for the christmas tree.
+This is the "Lamp Smartener" or "Overengineered Light Switch" it works on
+USB powered LED lights.
+
+WIP
 
 Component selection
 -------------------
@@ -40,6 +38,5 @@ TODO: Add alterantive 2 and 1 port versions with the current limiter.
 Mount the uC with either pin headers or directly.  for direct soldering try
 holding it in place with pins/wires in the through-holes then solder the
 edges.
-
 
 
