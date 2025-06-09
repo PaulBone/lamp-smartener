@@ -1,0 +1,252 @@
+substitutions:
+  name: lamp-smartener
+  friendly_name: "Lamp Smartener"
+
+esphome:
+  name: "${name}"
+  friendly_name: "${friendly_name}"
+  name_add_mac_suffix: True
+  project:
+    name: esphome.lamp_smartener
+    version: "1.0"
+  on_boot: 
+    then:
+      script.execute: update_status
+
+esp32:
+  board: esp32-c6-devkitm-1
+  variant: ESP32C6
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+  - platform: esphome
+
+# This points to the public location of this yaml file.
+dashboard_import:
+  package_import_url: github://PaulBone/lamp-smartener/firmware/lamp-smartener.yaml
+  import_full_config: false # or true
+
+
+wifi:
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  # Not supported in zigbee configuration.
+  ap:
+    ssid: "Lamp-Smartener Fallback Hotspot"
+    password: "Overengineered Light Switch"
+
+  on_connect:
+    - globals.set:
+        id: wifi_connected
+        value: 'true'
+    - script.execute: update_status
+  on_disconnect:
+    - globals.set:
+        id: wifi_connected
+        value: 'false'
+    - script.execute: update_status
+
+# Not supported with zigbee   
+captive_portal:
+
+web_server:
+
+script:
+  id: update_status
+  mode: restart
+  then:
+    - if:
+        condition:
+          api.connected:
+        then:
+          light.turn_on:
+            id: status
+            brightness: 1.0
+            red: 0
+            green: 0
+            blue: 1
+        else:
+        - if:
+            condition: 
+              lambda: |-
+                return id(wifi_connected);
+            then:
+              light.turn_on:
+                id: status
+                brightness: 1.0
+                red: 0
+                green: 1.0
+                blue: 0
+            else:
+              light.turn_on:
+                id: status
+                brightness: 1.0
+                red: 1.0
+                green: 0
+                blue: 0
+    - delay: 60s
+    - light.turn_off:
+        id: status
+
+globals:
+  - id: wifi_connected
+    type: bool
+    initial_value: "false"
+    restore_value: false
+  - id: direct_1
+    type: bool
+    initial_value: "true"
+    restore_value: false
+  - id: direct_2
+    type: bool
+    initial_value: "true"
+    restore_value: false
+
+output:
+  - platform: ledc
+    id: pwm_light_1
+    pin: GPIO0
+  - platform: ledc
+    id: pwm_light_2
+    pin: GPIO20
+
+light:
+  - platform: esp32_rmt_led_strip
+    id: status
+    internal: true
+    num_leds: 1
+    pin: GPIO8
+    rgb_order: GRB
+    chipset: ws2812
+    default_transition_length: 0s
+  - platform: monochromatic
+    output: pwm_light_1
+    name: "Light 1"
+    id: light_1
+    effects:
+      - pulse:
+          name: Notification
+          transition_length: 1.5s
+          update_interval: 1.5s
+          min_brightness: 10%
+          max_brightness: 100%
+      - pulse:
+          name: Alert
+          transition_length:
+            on_length: 0s
+            off_length: 0.5s
+          update_interval: 0.4s
+          min_brightness: 0%
+          max_brightness: 100%
+      - flicker:
+          name: Flicker
+          intensity: 2.5%
+          alpha: 97.5%
+  - platform: monochromatic
+    output: pwm_light_2
+    name: "Light 2"
+    id: light_2
+    # Disabled on this model.
+    internal: True
+    effects:
+      - pulse:
+          name: Notification
+          transition_length: 1.5s
+          update_interval: 1.5s
+          min_brightness: 10%
+          max_brightness: 100%
+      - pulse:
+          name: Alert
+          transition_length:
+            on_length: 0s
+            off_length: 0.5s
+          update_interval: 0.4s
+          min_brightness: 0%
+          max_brightness: 100%
+      - flicker:
+          name: Flicker
+          intensity: 2.5%
+          alpha: 97.5%
+
+binary_sensor:
+  - platform: gpio
+    name: "Button 1"
+    id: button_1
+    pin:
+      number: GPIO3
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    on_click:
+      then:
+        - if:
+            condition:
+              - or:
+                - lambda: return id(direct_1);
+                - not:
+                    api.connected: 
+            then:
+              - light.toggle: light_1
+  - platform: gpio
+    name: "Button 2"
+    id: button_2
+    on_click:
+      then:
+        - if:
+            condition:
+              - or:
+                - lambda: return id(direct_2);
+                - not:
+                    api.connected: 
+            then:
+              - light.toggle: light_2
+    pin:
+      number: GPIO14
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+switch:
+  - name: Direct Control 1
+    icon: mdi:cog
+    entity_category: CONFIG
+    platform: template
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: return id(direct_1);
+    turn_on_action:
+      then:
+        - globals.set:
+            id: direct_1
+            value: 'true'
+    turn_off_action: 
+      then:
+        - globals.set: 
+            id: direct_1
+            value: 'false'
+  - name: Direct Control 2
+    icon: mdi:cog
+    internal: true
+    entity_category: CONFIG
+    platform: template
+    restore_mode: RESTORE_DEFAULT_ON
+    lambda: return id(direct_2);
+    turn_on_action:
+      then:
+        - globals.set:
+            id: direct_2
+            value: 'true'
+    turn_off_action: 
+      then:
+        - globals.set: 
+            id: direct_2
+            value: 'false'
+
+

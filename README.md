@@ -40,3 +40,32 @@ holding it in place with pins/wires in the through-holes then solder the
 edges.
 
 
+Firmware
+--------
+
+Firmware uses the esphome framework and can be compiled with:
+
+   $ mkdir /tmp/esphome
+   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome --device=/dev/ttyACM0 -it ghcr.io/esphome/esphome run lamp-smartener.yaml
+
+Assuming you have pluged the ESP32 module into your PC and it is connected
+at /dev/ttyACM0
+
+Alternatlvely you can build and flash it in separete steps, this will erase
+any wifi credentials that may be on the device, the above method does not:
+
+   $ mkdir /tmp/esphome
+   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome -it ghcr.io/esphome/esphome compile lamp-smartener.yaml
+   $ cp /tmp/esphome/build/lamp-smartener/.pioenvs/lamp-smartener/firmware.factory.bin .
+   $ esptool.py write_flash 0x0 firmware.factory.bin
+
+The device will reboot and create a new Wifi network with "Lamp Smartener"
+in its name.  The password is "Overengineered Light Switch".  Connect to it
+with something like your phone then visit http://192.168.4.1  Tell the page
+there what wifi network you'd like it to join.
+
+Home assistant will be able to discover it, if you use (or would like to
+use) esphome's dashboard to maintain firmware updates (which is available as
+a HA addon) you can adopt the device there as well.
+
+
