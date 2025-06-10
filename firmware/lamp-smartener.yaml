@@ -8,7 +8,7 @@ esphome:
   name_add_mac_suffix: True
   project:
     name: esphome.lamp_smartener
-    version: "1.0"
+    version: "1.1"
   on_boot: 
     then:
       script.execute: update_status
@@ -127,7 +127,7 @@ light:
     default_transition_length: 0s
   - platform: monochromatic
     output: pwm_light_1
-    name: "Light 1"
+    name: "Light"
     id: light_1
     effects:
       - pulse:
@@ -215,7 +215,7 @@ binary_sensor:
       inverted: true
 
 switch:
-  - name: Direct Control 1
+  - name: Direct Control
     icon: mdi:cog
     entity_category: CONFIG
     platform: template
