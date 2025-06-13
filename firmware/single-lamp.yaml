@@ -58,41 +58,97 @@ captive_portal:
 web_server:
 
 script:
-  id: update_status
-  mode: restart
-  then:
-    - if:
-        condition:
-          api.connected:
-        then:
-          light.turn_on:
-            id: status
-            brightness: 1.0
-            red: 0
-            green: 0
-            blue: 1
-        else:
-        - if:
-            condition: 
-              lambda: |-
-                return id(wifi_connected);
-            then:
-              light.turn_on:
-                id: status
-                brightness: 1.0
-                red: 0
-                green: 1.0
-                blue: 0
-            else:
-              light.turn_on:
+  - id: update_status
+    mode: restart
+    then:
+      - if:
+          condition:
+            api.connected:
+          then:
+            light.turn_on:
+              id: status
+              brightness: 1.0
+              red: 0
+              green: 0
+              blue: 1
+          else:
+          - if:
+              condition: 
+                lambda: |-
+                  return id(wifi_connected);
+              then:
+                light.turn_on:
+                  id: status
+                  brightness: 1.0
+                  red: 0
+                  green: 1.0
+                  blue: 0
+              else:
+                light.turn_on:
+                  id: status
+                  brightness: 1.0
+                  red: 1.0
+                  green: 0
+                  blue: 0
+      - delay: 60s
+      - light.turn_off:
+          id: status
+
+    # The long press script prepares for factory reset if both buttons are held
+    # for 10s.  Then executes it if they're still held for another 5.  We
+    # need 3 scripts to correctly handle aborting a reset.
+  - id: long_press
+    mode: restart
+    then:
+      - delay: 10s
+      - if:
+          condition:
+            lambda: |-
+              return id(button_1).state && id(button_2).state;
+          then:
+            - globals.set:
+                id: reset_in_progress 
+                value: 'true'
+            - light.turn_on:
                 id: status
                 brightness: 1.0
                 red: 1.0
-                green: 0
-                blue: 0
-    - delay: 60s
-    - light.turn_off:
-        id: status
+                green: 0.64
+                blue: 0.0
+            - light.turn_on:
+                id: light_1 
+                effect: alert
+            - logger.log: "Preparing for factory reset in 5 seconds"
+            - delay: 5s
+            - if:
+                condition:
+                  lambda: |-
+                    return id(button_1).state && id(button_2).state;
+                then:
+                  - logger.log: "Factory reset"
+                  - button.press: my_factory_reset
+
+  - id: long_press_start
+    mode: restart
+    then:
+      script.execute: long_press
+  - id: long_press_end
+    mode: restart
+    then:
+      - if:
+          condition:
+            lambda: |-
+              return id(reset_in_progress);
+          then:
+            - logger.log: "Factory reset aborted"
+            - light.turn_off:
+                id: status
+            - light.turn_off:
+                id: light_1
+            - globals.set:
+                id: reset_in_progress 
+                value: 'false'
+      - script.stop: long_press
 
 globals:
   - id: wifi_connected
@@ -103,6 +159,16 @@ globals:
     type: bool
     initial_value: "true"
     restore_value: false
+  - id: reset_in_progress
+    type: bool
+    initial_value: "false"
+    restore_value: false
+
+button:
+  - platform: factory_reset
+    name: Factory reset
+    id: my_factory_reset
+    internal: true
 
 output:
   - platform: ledc
@@ -159,6 +225,12 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
+    on_press:
+      then:
+        script.execute: long_press_start
+    on_release:
+      then:
+        script.execute: long_press_end
     on_click:
       then:
         - if:
@@ -180,6 +252,12 @@ binary_sensor:
         input: true
         pullup: true
       inverted: true
+    on_press:
+      then:
+        script.execute: long_press_start
+    on_release:
+      then:
+        script.execute: long_press_end
 
 switch:
   - name: Direct Control
@@ -198,3 +276,4 @@ switch:
         - globals.set: 
             id: direct
             value: 'false'
+

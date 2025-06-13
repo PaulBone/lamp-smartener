@@ -69,3 +69,20 @@ use) esphome's dashboard to maintain firmware updates (which is available as
 a HA addon) you can adopt the device there as well.
 
 
+Using the device
+----------------
+
+Each button will twoggle it's lamp (if installed).  In the single lamp
+version the 2nd button can be used to run automations in home assistant.
+
+Pressing and holding both buttons together for 10 seconds will initiate a
+factory reset, the status light will glow orange and any lamps will flash,
+keep holding the buttons for another 5s to conform the factory reset,
+otherwise release buttons to cancel.
+
+Each button can be "disconnected" from its light by turning the "direct"
+control switch off for that switch and lamp.  Eg if the button should run a
+home assistant automation instead (which may turn on the lamp to 50%
+brightness if you touch the button after midnight, and full brightness
+otherwise).  The "direct" setting will persisted across reboots.
+
