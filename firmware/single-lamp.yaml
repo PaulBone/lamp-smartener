@@ -30,7 +30,7 @@ ota:
 
 # This points to the public location of this yaml file.
 dashboard_import:
-  package_import_url: github://PaulBone/lamp-smartener/firmware/lamp-smartener.yaml
+  package_import_url: github://PaulBone/lamp-smartener/firmware/single-lamp.yaml
   import_full_config: false # or true
 
 
@@ -99,22 +99,20 @@ globals:
     type: bool
     initial_value: "false"
     restore_value: false
-  - id: direct_1
-    type: bool
-    initial_value: "true"
-    restore_value: false
-  - id: direct_2
+  - id: direct
     type: bool
     initial_value: "true"
     restore_value: false
 
 output:
   - platform: ledc
-    id: pwm_light_1
-    pin: GPIO0
-  - platform: ledc
-    id: pwm_light_2
+    id: pwm_light
+    # If you soldered R2, Q3, Q4 and J2 then use GPIO20,
     pin: GPIO20
+    # NOTE: If you soldered R1, Q1, Q2 and J2 then use GPIO2, also check
+    # which button is connected to which pin if you want the button over the
+    # USB port to control it.
+    # pin: GPIO0
 
 light:
   - platform: esp32_rmt_led_strip
@@ -126,34 +124,9 @@ light:
     chipset: ws2812
     default_transition_length: 0s
   - platform: monochromatic
-    output: pwm_light_1
+    output: pwm_light
     name: "Light"
     id: light_1
-    effects:
-      - pulse:
-          name: Notification
-          transition_length: 1.5s
-          update_interval: 1.5s
-          min_brightness: 10%
-          max_brightness: 100%
-      - pulse:
-          name: Alert
-          transition_length:
-            on_length: 0s
-            off_length: 0.5s
-          update_interval: 0.4s
-          min_brightness: 0%
-          max_brightness: 100%
-      - flicker:
-          name: Flicker
-          intensity: 2.5%
-          alpha: 97.5%
-  - platform: monochromatic
-    output: pwm_light_2
-    name: "Light 2"
-    id: light_2
-    # Disabled on this model.
-    internal: True
     effects:
       - pulse:
           name: Notification
@@ -179,7 +152,9 @@ binary_sensor:
     name: "Button 1"
     id: button_1
     pin:
-      number: GPIO3
+      # NOTE: if you switched the pin for the LED above you may also want to
+      # swap this to GPIO3
+      number: GPIO14
       mode:
         input: true
         pullup: true
@@ -189,7 +164,7 @@ binary_sensor:
         - if:
             condition:
               - or:
-                - lambda: return id(direct_1);
+                - lambda: return id(direct);
                 - not:
                     api.connected: 
             then:
@@ -197,18 +172,10 @@ binary_sensor:
   - platform: gpio
     name: "Button 2"
     id: button_2
-    on_click:
-      then:
-        - if:
-            condition:
-              - or:
-                - lambda: return id(direct_2);
-                - not:
-                    api.connected: 
-            then:
-              - light.toggle: light_2
     pin:
-      number: GPIO14
+      # NOTE: if you switched the pin for the LED above you may also want to
+      # swap this to GPIO14
+      number: GPIO3
       mode:
         input: true
         pullup: true
@@ -220,33 +187,14 @@ switch:
     entity_category: CONFIG
     platform: template
     restore_mode: RESTORE_DEFAULT_ON
-    lambda: return id(direct_1);
+    lambda: return id(direct);
     turn_on_action:
       then:
         - globals.set:
-            id: direct_1
+            id: direct
             value: 'true'
     turn_off_action: 
       then:
         - globals.set: 
-            id: direct_1
+            id: direct
             value: 'false'
-  - name: Direct Control 2
-    icon: mdi:cog
-    internal: true
-    entity_category: CONFIG
-    platform: template
-    restore_mode: RESTORE_DEFAULT_ON
-    lambda: return id(direct_2);
-    turn_on_action:
-      then:
-        - globals.set:
-            id: direct_2
-            value: 'true'
-    turn_off_action: 
-      then:
-        - globals.set: 
-            id: direct_2
-            value: 'false'
-
-
