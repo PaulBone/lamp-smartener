@@ -17,12 +17,13 @@ lid_inset = 2
 wall_thickness = 1.2
 board_width = 68
 board_depth = 29
-board_height = 19
+board_height = 9
 board_thickness = 1.6
 corner_radius=5
 bottom_chamfer=2
 fit = 0.2
-usb_width = 59
+usb_width = 14
+usb_pos_x = 21.5
 usb_width_inner = 28.495
 usb_height = 8.2 - board_thickness
 usb_c_width = 9
@@ -61,19 +62,18 @@ class MyBox(BasePartObject):
                 with Locations((-29.527, 4.128, 0),
                                (28.892, 4.128, 0)):
                     StandOff(board_height-board_thickness,
-                             7.5, 12.5, 3, 10,
+                             7.5, 10, 3, 10,
                              align=(Align.CENTER, Align.CENTER, Align.MIN))
             
             front_face = faces().sort_by(Axis.Y)[0]
             with BuildSketch(Plane(origin=front_face.edges().sort_by(Axis.Z)[-1]@0.5,
                                    x_dir=(1, 0, 0),
                                    z_dir=(0, -1, 0))):
-                with Locations((0, -(lid_inset + 8.5), 0)):
-                    Rectangle(usb_width, 20,
-                              align=(Align.CENTER, Align.MIN))
-                with Locations((0, -(lid_inset + 17.5), 0)):
-                    Rectangle(usb_c_width, 30,
-                              align=(Align.CENTER, Align.MIN))
+                with Locations((usb_pos_x, 0)):
+                    Rectangle(usb_width, lid_inset + 8.8,
+                              align=(Align.CENTER, Align.MAX))
+                Rectangle(usb_c_width, lid_inset + 6.2,
+                            align=(Align.CENTER, Align.MAX))
             extrude(amount=-5, mode=Mode.SUBTRACT)
 
             with Locations(faces().sort_by(Axis.Z)[0]):
@@ -211,10 +211,10 @@ class Button(BasePartObject):
             chamfer(edges().group_by(Axis.Z)[0], length=0.5)
         super().__init__(p.part, rotation, align, mode)
 
-box = MyBox(92, 32, 25)
+box = MyBox(92, 32, board_height+5)
 button = Button()
 lid = MyLid(92, 32, 2.75,
-            button, 25)
+            button, board_height+5)
 button = Button()
 
 show_object(box, "box")
