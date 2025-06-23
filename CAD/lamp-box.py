@@ -15,6 +15,7 @@ class StandOff(BasePartObject):
 
 lid_inset = 2
 wall_thickness = 1.2
+overlap = wall_thickness
 board_width = 68
 board_depth = 29
 board_height = 9
@@ -73,8 +74,19 @@ class MyBox(BasePartObject):
                     Rectangle(usb_width, lid_inset + 8.8,
                               align=(Align.CENTER, Align.MAX))
                 Rectangle(usb_c_width, lid_inset + 6.2,
-                            align=(Align.CENTER, Align.MAX))
+                          align=(Align.CENTER, Align.MAX))
             extrude(amount=-5, mode=Mode.SUBTRACT)
+            with BuildSketch(Plane(origin=front_face.edges().sort_by(Axis.Z)[-1]@0.5
+                                   + (0, wall_thickness/2, 0),
+                                   x_dir=(1, 0, 0),
+                                   z_dir=(0, -1, 0))):
+                with Locations((usb_pos_x, 0)):
+                    Rectangle(usb_width+overlap*2, lid_inset + 8.8 - board_thickness,
+                              align=(Align.CENTER, Align.MAX))
+                Rectangle(usb_c_width+overlap*2, lid_inset + 6.2 - board_thickness - 1,
+                          align=(Align.CENTER, Align.MAX))
+            extrude(amount=-wall_thickness/2, mode=Mode.SUBTRACT)
+
 
             with Locations(faces().sort_by(Axis.Z)[0]):
                 with Locations((-screw_x_pos(x), 0),
@@ -123,17 +135,22 @@ class MyLid(BasePartObject):
             extrude(amount=-4, mode=Mode.SUBTRACT)
             
             with Locations(edges().filter_by(Axis.X).group_by(Axis.Y)[0].sort_by(Axis.Z)[0]@0.5):
-                Box(usb_width, wall_thickness, lid_inset + board_thickness + 0.4,
+                with Locations((usb_pos_x, 0, 0)):
+                    Box(usb_width-fit, wall_thickness, lid_inset + board_thickness,
+                        align=(Align.CENTER, Align.MIN, Align.MAX))
+                    with Locations((0, wall_thickness/2, 0)):
+                        Box(usb_width-fit+overlap*2, wall_thickness/2, lid_inset + board_thickness,
+                            align=(Align.CENTER, Align.MIN, Align.MAX))
+                Box(usb_c_width-fit, wall_thickness, lid_inset + board_thickness + 1,
                     align=(Align.CENTER, Align.MIN, Align.MAX))
-                Box(usb_width_inner, wall_thickness, lid_inset + board_thickness + 0.4 + usb_height,
-                    align=(Align.CENTER, Align.MIN, Align.MAX))
-                Box(usb_c_width, wall_thickness, lid_inset + board_thickness + 0.4 + 16.5 - usb_c_height,
-                    align=(Align.CENTER, Align.MIN, Align.MAX))
-            with Locations(edges(Select.LAST).group_by(Axis.Z)[0].sort_by(Axis.Y)[-1]@0.5 + (0, 0, board_thickness)):
-                Box(usb_c_width + wall_thickness*2, wall_thickness/2, 16.5 - usb_c_height - usb_height + 0.1 - board_thickness,
-                    align=(Align.CENTER, Align.MIN, Align.MIN))
-            chamfer(edges(Select.LAST).group_by(Axis.Z)[-1].sort_by(Axis.Y)[0],
-                    length=wall_thickness/2 - 0.01)
+                with Locations((0, wall_thickness/2, 0)):
+                    Box(usb_c_width-fit+overlap*2, wall_thickness/2, lid_inset + board_thickness + 1,
+                        align=(Align.CENTER, Align.MIN, Align.MAX))
+            #with Locations(edges(Select.LAST).group_by(Axis.Z)[0].sort_by(Axis.Y)[-1]@0.5 + (0, 0, board_thickness)):
+            #    Box(usb_c_width + wall_thickness*2, wall_thickness/2, 16.5 - usb_c_height - usb_height + 0.1 - board_thickness,
+            #        align=(Align.CENTER, Align.MIN, Align.MIN))
+            #chamfer(edges(Select.LAST).group_by(Axis.Z)[-1].sort_by(Axis.Y)[0],
+            #        length=wall_thickness/2 - 0.01)
 
             # Screw mounts.
             radius = corner_radius - wall_thickness - fit
