@@ -46,7 +46,7 @@ Firmware
 Firmware uses the esphome framework and can be compiled with:
 
    $ mkdir /tmp/esphome
-   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome --device=/dev/ttyACM0 -it ghcr.io/esphome/esphome run lamp-smartener.yaml
+   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome" --device=/dev/ttyACM0 -it ghcr.io/esphome/esphome run lamp-smartener.yaml
 
 Assuming you have pluged the ESP32 module into your PC and it is connected
 at /dev/ttyACM0
@@ -55,7 +55,7 @@ Alternatlvely you can build and flash it in separete steps, this will erase
 any wifi credentials that may be on the device, the above method does not:
 
    $ mkdir /tmp/esphome
-   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome -it ghcr.io/esphome/esphome compile lamp-smartener.yaml
+   $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome" -it ghcr.io/esphome/esphome compile lamp-smartener.yaml
    $ cp /tmp/esphome/build/lamp-smartener/.pioenvs/lamp-smartener/firmware.factory.bin .
    $ esptool.py write_flash 0x0 firmware.factory.bin
 
@@ -72,8 +72,9 @@ a HA addon) you can adopt the device there as well.
 Using the device
 ----------------
 
-Each button will twoggle it's lamp (if installed).  In the single lamp
-version the 2nd button can be used to run automations in home assistant.
+Each button will twoggle it's lamp (if installed) or drive automations in
+Home Assistant.  In the single lamp version by default the 2nd button does
+nothing directly, but it can be used to run automations in home assistant.
 
 Pressing and holding both buttons together for 10 seconds will initiate a
 factory reset, the status light will glow orange and any lamps will flash,
