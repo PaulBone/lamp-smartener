@@ -43,7 +43,11 @@ edges.
 Firmware
 --------
 
-Firmware uses the esphome framework and can be compiled with:
+Firmware uses the esphome framework and can be compiled with, replace
+lamp-smartener.yaml with the name of the .yaml file to match your lamp
+smartener, single-lamp.yaml or double-lamp.yaml.  If you're using
+single-lamp.yaml check the pin names in the file match what you've soldered
+on the board.
 
    $ mkdir /tmp/esphome
    $ docker run --rm --privileged -v "${PWD}":/config -v "/tmp/esphome:/config/.esphome" --device=/dev/ttyACM0 -it ghcr.io/esphome/esphome run lamp-smartener.yaml
