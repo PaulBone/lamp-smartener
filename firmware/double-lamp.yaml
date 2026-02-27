@@ -11,7 +11,13 @@ esphome:
     version: "1.1"
   on_boot: 
     then:
-      script.execute: update_status
+      - script.execute: update_status
+      - switch.control:
+          id: direct_1
+          state: !lambda "return id(direct_1_persist).state;"
+      - switch.control:
+          id: direct_2
+          state: !lambda "return id(direct_2_persist).state;"
 
 esp32:
   board: esp32-c6-devkitm-1
@@ -155,14 +161,6 @@ globals:
     type: bool
     initial_value: "false"
     restore_value: false
-  - id: direct_1
-    type: bool
-    initial_value: "true"
-    restore_value: false
-  - id: direct_2
-    type: bool
-    initial_value: "true"
-    restore_value: false
   - id: reset_in_progress
     type: bool
     initial_value: "false"
@@ -261,7 +259,7 @@ binary_sensor:
         - if:
             condition:
               - or:
-                - lambda: return id(direct_1);
+                - switch.is_on: direct_1
                 - not:
                     api.connected: 
             then:
@@ -288,7 +286,7 @@ binary_sensor:
         - if:
             condition:
               - or:
-                - lambda: return id(direct_2);
+                - switch.is_on: direct_2
                 - not:
                     api.connected: 
             then:
@@ -296,36 +294,29 @@ binary_sensor:
 
 switch:
   - name: Direct Control 1
+    id: direct_1
+    icon: mdi:cog
+    entity_category: CONFIG
+    platform: template
+    optimistic: true
+  - name: Direct Control 1 On Reboot
+    id: direct_1_persist
     icon: mdi:cog
     entity_category: CONFIG
     platform: template
     restore_mode: RESTORE_DEFAULT_ON
-    lambda: return id(direct_1);
-    turn_on_action:
-      then:
-        - globals.set:
-            id: direct_1
-            value: 'true'
-    turn_off_action: 
-      then:
-        - globals.set: 
-            id: direct_1
-            value: 'false'
+    optimistic: true
   - name: Direct Control 2
+    id: direct_2
+    icon: mdi:cog
+    entity_category: CONFIG
+    platform: template
+    optimistic: true
+  - name: Direct Control 2 On Reboot
+    id: direct_2_persist
     icon: mdi:cog
     entity_category: CONFIG
     platform: template
     restore_mode: RESTORE_DEFAULT_ON
-    lambda: return id(direct_2);
-    turn_on_action:
-      then:
-        - globals.set:
-            id: direct_2
-            value: 'true'
-    turn_off_action: 
-      then:
-        - globals.set: 
-            id: direct_2
-            value: 'false'
-
+    optimistic: true
 
